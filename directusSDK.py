@@ -106,6 +106,9 @@ class DirectusSDK:
     def update_item(self, collection, item_id, attributes):
         self._api_patch(f'/items/{collection}/{item_id}', json=attributes)
 
+    def create_item(self, collection, attributes):
+        self._api_post(endpoint=f'/items/{collection}', json=attributes)
+
     def get_all_collections(self):
         self.collections = self._api_get(f'/collections')
         return self.collections
