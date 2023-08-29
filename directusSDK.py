@@ -59,7 +59,8 @@ class DirectusSDK:
         for folder in self.folders:
             if folder['name'] in folder_names:
                 top_parent_ids.append(folder['id'])
-                leaf_folder_ids.append(self.find_leaf_folders(top_parent_ids))
+
+        leaf_folder_ids.append(self.find_leaf_folders(top_parent_ids))
 
         leaf_folder_objects = []
         for folder in self.folders:
