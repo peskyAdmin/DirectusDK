@@ -47,19 +47,26 @@ class DirectusSDK:
 
     def find_leaf_folders_by_name(self, folder_names, force=False):
         """
-        :param folder_name: list of parent folder names to find all leaf folders
+        :param folder_names: list of parent folder names to find all leaf folders
         :param force: Force API update
-        :return: list of leaf folder ids
+        :return: list of leaf folder objects
         """
         if force:
             self.get_all_folders()
 
+        leaf_folder_ids = []
         top_parent_ids = []
         for folder in self.folders:
             if folder['name'] in folder_names:
                 top_parent_ids.append(folder['id'])
-                leaf_folders = self.find_leaf_folders(top_parent_ids)
-                return leaf_folders
+                leaf_folder_ids.append(self.find_leaf_folders(top_parent_ids))
+
+        leaf_folder_objects = []
+        for folder in self.folders:
+            if folder['id'] in leaf_folder_ids:
+                leaf_folder_objects.append(folder)
+
+        return leaf_folder_objects
 
     def find_files_in_folders(self, folder_ids):
         files = []
