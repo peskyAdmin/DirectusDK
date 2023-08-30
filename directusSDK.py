@@ -77,14 +77,6 @@ class DirectusSDK:
                 files.append(file)
         return files
 
-    def find_files_in_folders_new(self, folder_ids):
-        files = []
-        # for file, datain self.files.items():
-        for file in self.files:
-            if file['folder'] in folder_ids:
-                files.append(file)
-        return files
-
     def get_all_folders(self):
         # self.folders = _merge_dicts(self._api_get('/folders?limit=-1'))
         self.folders = self._api_get('/folders?limit=-1')
