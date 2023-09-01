@@ -94,7 +94,7 @@ class DirectusSDK:
         return self._api_get(f'/files/{file_id}')
 
     def update_file(self, attributes, file_id):
-        self._api_patch(endpoint=f'/files/{file_id}', json=attributes)
+        return self._api_patch(endpoint=f'/files/{file_id}', json=attributes)
 
     def get_all_items(self, collection):
         # return _merge_dicts(self._api_get(f'/items/{collection}?limit=-1'))
@@ -104,10 +104,10 @@ class DirectusSDK:
         return self._api_get(f'/items/{collection}/{item_id}')
 
     def update_item(self, collection, item_id, attributes):
-        self._api_patch(f'/items/{collection}/{item_id}', json=attributes)
+        return self._api_patch(f'/items/{collection}/{item_id}', json=attributes)
 
     def create_item(self, collection, attributes):
-        self._api_post(endpoint=f'/items/{collection}', json=attributes)
+        return self._api_post(endpoint=f'/items/{collection}', json=attributes)
 
     def get_all_collections(self):
         self.collections = self._api_get(f'/collections')
@@ -117,10 +117,10 @@ class DirectusSDK:
         return self._api_get(f'/collections/{collection}')
 
     def delete_collection(self, collection):
-        self._api_delete(f'/collections/{collection}')
+        return self._api_delete(f'/collections/{collection}')
 
     def update_collection(self, collection, attributes):
-        self._api_patch(f'/collections/{collection}', json=attributes)
+        return self._api_patch(f'/collections/{collection}', json=attributes)
 
     def create_collection(self, collection, attributes):
         """
@@ -132,7 +132,7 @@ class DirectusSDK:
         :param attributes:
         :return:
         """
-        self._api_post(f'/collection', json=attributes)
+        return self._api_post(f'/collection', json=attributes)
 
     def get_fields(self):
         return self._api_get('/fields')
@@ -145,7 +145,6 @@ class DirectusSDK:
 
     def create_field_dropdown(self, collection, field_name, dropdown_options, type="string"):
         """
-
         :param collection: collection to create field
         :param field_name: name of field to create
         :param dropdown_options: a list of choice objects ie
@@ -163,7 +162,7 @@ class DirectusSDK:
                                "options": {"choices": dropdown_options}},
                       "collection": collection}
 
-        self.create_field(collection=collection, field_data=field_data)
+        return self.create_field(collection=collection, field_data=field_data)
 
     def create_field(self, collection, field_data):
         """
@@ -175,7 +174,7 @@ class DirectusSDK:
         :param field_data:
         :return:
         """
-        self._api_post(endpoint=f'/fields/{collection}', json=field_data)
+        return self._api_post(endpoint=f'/fields/{collection}', json=field_data)
 
     def update_field(self, collection, field, field_data):
         """
@@ -186,10 +185,10 @@ class DirectusSDK:
         :param field_data:
         :return:
         """
-        self._api_patch(endpoint=f'/fields/{collection}/{field}', json=field_data)
+        return self._api_patch(endpoint=f'/fields/{collection}/{field}', json=field_data)
 
     def delete_field(self, collection, field):
-        self._api_delete(endpoint=f'/fields/{collection}/{field}')
+        return self._api_delete(endpoint=f'/fields/{collection}/{field}')
 
     def _api_get(self, endpoint):
         res = requests.get(url=self.url + endpoint, headers=self.auth_header)
@@ -210,13 +209,16 @@ class DirectusSDK:
     def _api_delete(self, endpoint):
         res = requests.delete(url=self.url + endpoint)
 
+
 def _handle_api_response(res, endpoint):
     data = res.json()
     if not res.status_code == 200:
         print(f'ERROR: Bad Response {res}')
         print(f'ERROR: Data: {data}')
         print(f'ERROR: Endpoint: {endpoint}')
-    return data['data']
+        return False
+    else:
+        return data['data']
 
 
 def _merge_dicts(list_of_dicts):
