@@ -143,6 +143,28 @@ class DirectusSDK:
     def get_field(self, collection, field):
         return self._api_get(f'/fields/{collection}/{field}')
 
+    def create_field_dropdown(self, collection, field_name, dropdown_options, type="string"):
+        """
+
+        :param collection: collection to create field
+        :param field_name: name of field to create
+        :param dropdown_options: a list of choice objects ie
+                        [{
+                            "text": "test1",
+                            "value": "test1"
+                        }]
+        :return:
+        """
+        field_data = {"field": field_name,
+                      "type": type,
+                      "schema": {},
+                      "meta": {"interface": "select-dropdown",
+                               "special": None,
+                               "options": {"choices": dropdown_options}},
+                      "collection": collection}
+
+        self.create_field(collection=collection, field_data=field_data)
+
     def create_field(self, collection, field_data):
         """
         {"field": "field_key",
