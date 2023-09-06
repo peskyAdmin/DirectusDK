@@ -192,22 +192,19 @@ class DirectusSDK:
 
     def _api_get(self, endpoint):
         res = requests.get(url=self.url + endpoint, headers=self.auth_header)
-        data = _handle_api_response(res, endpoint)
-
-        return data
+        return _handle_api_response(res, endpoint)
 
     def _api_patch(self, endpoint, json):
         res = requests.patch(url=self.url + endpoint, headers=self.auth_header, json=json)
-        data = _handle_api_response(res, endpoint)
-
-        return data
+        return _handle_api_response(res, endpoint)
 
     def _api_post(self, endpoint, json):
         res = requests.post(url=self.url + endpoint, headers=self.auth_header, json=json)
-        data = _handle_api_response(res, endpoint)
+        return _handle_api_response(res, endpoint)
 
     def _api_delete(self, endpoint):
         res = requests.delete(url=self.url + endpoint)
+        return _handle_api_response(res, endpoint)
 
 
 def _handle_api_response(res, endpoint):
