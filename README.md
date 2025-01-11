@@ -1,4 +1,6 @@
-# DirectusDK - Directus API Wrapper
+# DirectusDK - Directus Python Development Kit
+
+![DirectusDK Logo](images/logo.jpg)
 
 ## Overview
 
@@ -30,7 +32,15 @@ cd directusdk
 python setup.py install
 ```
 
-Configuration
+if you want to write scpripts and develop on DirectusDK at the same time then clone the project and inside the project run:
+
+```bash
+pip install -e .
+```
+
+This will allow you to make changes and have them immedieatly take affect in your environment.
+
+## Configuration
 Before using DirectusDK, you need to set up your Directus project and obtain an API token:
 
 Directus URL: The base URL of your Directus instance.
