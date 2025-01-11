@@ -316,5 +316,3 @@ class DirectusDK:
 def _merge_dicts(list_of_dicts):
     merged_dict = {d["id"]: {k: v for k, v in d.items() if k != "id"} for d in list_of_dicts}
     return merged_dict
-
-
