@@ -79,7 +79,6 @@ class DirectusDK:
 
     def find_files_in_folders(self, folder_ids):
         files = []
-        # for file in self.files.keys():
         for file in self.files:
             if file['folder'] in folder_ids:
                 files.append(file)
@@ -87,7 +86,6 @@ class DirectusDK:
 
     def get_all_folders(self):
         # self.folders = _merge_dicts(self._api_get('/folders?limit=-1'))
-        self.folders = self._api_get('/folders?limit=-1')
         items = []
         page = 1
         print(f"Getting all folders 100 at a time")
@@ -116,10 +114,6 @@ class DirectusDK:
 
     def update_file(self, attributes, file_id):
         return self._api_patch(endpoint=f'/files/{file_id}', json=attributes)
-
-    # def get_all_items(self, collection):
-    #     # return _merge_dicts(self._api_get(f'/items/{collection}?limit=-1'))
-    #     return self._api_get(f'/items/{collection}?limit=-1')
 
     def get_all_items(self, collection):
         items = []
@@ -261,32 +255,24 @@ class DirectusDK:
         return self._api_delete(endpoint=f'/fields/{collection}/{field}')
 
     def _api_get(self, endpoint):
-        # res = requests.get(url=self.url + endpoint, headers=self.auth_header)
-        # return _handle_api_response(res, endpoint)
         return self._send_request_handle_response(endpoint=endpoint, 
                                                   headers=self.auth_header, 
                                                   method='get')
 
 
     def _api_patch(self, endpoint, json):
-        # res = requests.patch(url=self.url + endpoint, headers=self.auth_header, json=json)
-        # return _handle_api_response(res, endpoint)
         return self._send_request_handle_response(endpoint=endpoint,
                                                   headers=self.auth_header,
                                                   method='patch',
                                                   json=json)
 
     def _api_post(self, endpoint, json):
-        # res = requests.post(url=self.url + endpoint, headers=self.auth_header, json=json)
-        # return _handle_api_response(res, endpoint)
         return self._send_request_handle_response(endpoint=endpoint,
                                                     headers=self.auth_header,
                                                     method='post',
                                                     json=json)
 
     def _api_delete(self, endpoint):
-        # res = requests.delete(url=self.url + endpoint)
-        # return _handle_api_response(res, endpoint)
         return self._send_request_handle_response(endpoint=endpoint,
                                                   headers=self.auth_header,
                                                   method='delete')
@@ -326,17 +312,6 @@ class DirectusDK:
         else:
             data = res.json()
             return data['data'] 
-
-# def _handle_api_response(res, endpoint):
-#     data = res.json()
-#     if not res.status_code == 200:
-#         print(f'ERROR: Bad Response {res}')
-#         print(f'ERROR: Data: {data}')
-#         print(f'ERROR: Endpoint: {endpoint}')
-#         return False
-#     else:
-#         return data['data']
-
 
 def _merge_dicts(list_of_dicts):
     merged_dict = {d["id"]: {k: v for k, v in d.items() if k != "id"} for d in list_of_dicts}
