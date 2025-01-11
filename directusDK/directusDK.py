@@ -1,7 +1,15 @@
+import time
 import requests
+from slugify import slugify
+
+MANY_TO_MANY_TEMPLATE = {
+        "create": [],
+        "update": [],
+        "delete": []
+    }
 
 
-class DirectusSDK:
+class DirectusDK:
     def __init__(self, url, api_token, force=False):
         self.url = url
         self.auth_header = {'Authorization': f'Bearer {api_token}'}
@@ -80,6 +88,19 @@ class DirectusSDK:
     def get_all_folders(self):
         # self.folders = _merge_dicts(self._api_get('/folders?limit=-1'))
         self.folders = self._api_get('/folders?limit=-1')
+        items = []
+        page = 1
+        print(f"Getting all folders 100 at a time")
+        while True:
+            print(f'Getting page {page}')
+            response = self._api_get(f'/folders/?page={page}')
+            # data = response.get('data', [])
+            if not response:
+                break
+            items.extend(response)
+            page += 1
+        print(f'Got all {len(items)} folders')
+
         return self.folders
 
     def get_folder(self, folder_id):
@@ -96,9 +117,24 @@ class DirectusSDK:
     def update_file(self, attributes, file_id):
         return self._api_patch(endpoint=f'/files/{file_id}', json=attributes)
 
+    # def get_all_items(self, collection):
+    #     # return _merge_dicts(self._api_get(f'/items/{collection}?limit=-1'))
+    #     return self._api_get(f'/items/{collection}?limit=-1')
+
     def get_all_items(self, collection):
-        # return _merge_dicts(self._api_get(f'/items/{collection}?limit=-1'))
-        return self._api_get(f'/items/{collection}?limit=-1')
+        items = []
+        page = 1
+        print(f"Getting all items 100 at a time")
+        while True:
+            print(f'Getting page {page}')
+            response = self._api_get(f'/items/{collection}?page={page}')
+            # data = response.get('data', [])
+            if not response:
+                break
+            items.extend(response)
+            page += 1
+        print(f'Got all {len(items)} items')
+        return items
 
     def get_item(self, collection, item_id):
         return self._api_get(f'/items/{collection}/{item_id}')
@@ -139,6 +175,40 @@ class DirectusSDK:
 
     def get_fields_in_collection(self, collection):
         return self._api_get(f'/fields/{collection}')
+
+    def clone_collection(self, old_collection, new_collection, override = None):
+        """
+        pass dictionary to override, rename fields
+        dict = {
+            'id': 'group_id',
+            'status': 'status_new'
+        }
+        """
+
+        fields = self.get_fields_in_collection(old_collection)
+
+        for field in fields:
+            if field['field'] == 'id':
+                id_field = field
+
+        self.create_collection(new_collection)
+
+        # TODO: handle id creation
+        for field in fields:
+            if field['field'] != 'id':
+                #TODO: implement override
+                del field['meta']['id']
+                del field['meta']['collection']
+                del field['meta']['field']
+
+                data = {
+                    'field': field['field'],
+                    'type': field['type'],
+                    'meta': field['meta'],
+                    'schema': field['schema']
+                }
+
+                self.create_field(new_collection, data)
 
     def get_field(self, collection, field):
         return self._api_get(f'/fields/{collection}/{field}')
@@ -191,31 +261,81 @@ class DirectusSDK:
         return self._api_delete(endpoint=f'/fields/{collection}/{field}')
 
     def _api_get(self, endpoint):
-        res = requests.get(url=self.url + endpoint, headers=self.auth_header)
-        return _handle_api_response(res, endpoint)
+        # res = requests.get(url=self.url + endpoint, headers=self.auth_header)
+        # return _handle_api_response(res, endpoint)
+        return self._send_request_handle_response(endpoint=endpoint, 
+                                                  headers=self.auth_header, 
+                                                  method='get')
+
 
     def _api_patch(self, endpoint, json):
-        res = requests.patch(url=self.url + endpoint, headers=self.auth_header, json=json)
-        return _handle_api_response(res, endpoint)
+        # res = requests.patch(url=self.url + endpoint, headers=self.auth_header, json=json)
+        # return _handle_api_response(res, endpoint)
+        return self._send_request_handle_response(endpoint=endpoint,
+                                                  headers=self.auth_header,
+                                                  method='patch',
+                                                  json=json)
 
     def _api_post(self, endpoint, json):
-        res = requests.post(url=self.url + endpoint, headers=self.auth_header, json=json)
-        return _handle_api_response(res, endpoint)
+        # res = requests.post(url=self.url + endpoint, headers=self.auth_header, json=json)
+        # return _handle_api_response(res, endpoint)
+        return self._send_request_handle_response(endpoint=endpoint,
+                                                    headers=self.auth_header,
+                                                    method='post',
+                                                    json=json)
 
     def _api_delete(self, endpoint):
-        res = requests.delete(url=self.url + endpoint)
-        return _handle_api_response(res, endpoint)
+        # res = requests.delete(url=self.url + endpoint)
+        # return _handle_api_response(res, endpoint)
+        return self._send_request_handle_response(endpoint=endpoint,
+                                                  headers=self.auth_header,
+                                                  method='delete')
 
+    def _send_request_handle_response(self, endpoint, headers, method, json=None):
+        max_retries = 5
+        num_tries = 1
+        url = self.url + endpoint
+        res = requests.request(method=method, url=url, headers=headers, json=json)
+        if res.status_code == 502 or res.status_code == 503 or res.status_code == 500:
+            print(f'ERROR: Bad Response {res}')
+            print(f'ERROR: Endpoint: {url}')
+            print(f'ERROR: Retrying {max_retries} more times')
+            try: 
+                data = res.json()
+                print(f'ERROR: Data: {data}')
+            except Exception as e:
+                print(f'ERROR: No Data {e}')
+            for i in range(max_retries):
+                res = requests.request(method=method, url=url, headers=headers, json=json)
+                if res.status_code == 200:
+                    data = res.json()
+                    return data['data']
+                elif num_tries == max_retries:
+                    raise Exception(f'ERROR: Bad Response {res}')
+                else:
+                    num_tries += 1
+                    print(f'ERROR: Bad Response {res}')
+                    print(f'Waiting 10 seconds')
+                    time.sleep(10)
+        elif not res.status_code == 200:
+            print(f'ERROR: Bad Response {res}')
+            print(res.content)
+            print(f'ERROR: Data: {data}')
+            print(f'ERROR: Endpoint: {endpoint}')
+            return False
+        else:
+            data = res.json()
+            return data['data'] 
 
-def _handle_api_response(res, endpoint):
-    data = res.json()
-    if not res.status_code == 200:
-        print(f'ERROR: Bad Response {res}')
-        print(f'ERROR: Data: {data}')
-        print(f'ERROR: Endpoint: {endpoint}')
-        return False
-    else:
-        return data['data']
+# def _handle_api_response(res, endpoint):
+#     data = res.json()
+#     if not res.status_code == 200:
+#         print(f'ERROR: Bad Response {res}')
+#         print(f'ERROR: Data: {data}')
+#         print(f'ERROR: Endpoint: {endpoint}')
+#         return False
+#     else:
+#         return data['data']
 
 
 def _merge_dicts(list_of_dicts):

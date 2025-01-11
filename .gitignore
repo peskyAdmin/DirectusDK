@@ -1,0 +1,11 @@
+# SDK workspace and private files
+WORKSPACE/
+*.csv
+
+# Python
+directusDK.egg-info
+__pycache__/
+.venv/
+
+# git
+.git/
