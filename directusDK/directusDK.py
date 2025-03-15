@@ -1,6 +1,7 @@
 import time
 import requests
 from slugify import slugify
+import csv
 
 MANY_TO_MANY_TEMPLATE = {
         "create": [],
@@ -114,6 +115,22 @@ class DirectusDK:
 
     def update_file(self, attributes, file_id):
         return self._api_patch(endpoint=f'/files/{file_id}', json=attributes)
+
+    def write_collection_to_csv(self, collection, path=None):
+        items = self.get_all_items(collection)
+
+        if not path:
+            path = f'{collection}.csv'
+
+        header = items[0].keys()
+        with open(f'{collection}.csv', mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=header)
+            writer.writeheader()
+            writer.writerows(items)
+        
+        print(f'Wrote {len(items)} items to {path}')
+
+        return
 
     def get_all_items(self, collection):
         items = []
