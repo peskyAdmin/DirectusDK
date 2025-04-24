@@ -134,16 +134,30 @@ class DirectusDK:
 
     def get_all_items(self, collection):
         items = []
-        page = 1
+        # response = self._api_get(f'/items/{collection}')
+        # items = response['data']
+        # page = 1
+        # print(f"Getting all items 100 at a time")
+        # while True:
+        #     print(f'Getting page {page}')
+        #     response = self._api_get(f'/items/{collection}?page={page}')
+        #     # data = response.get('data', [])
+        #     if not response:
+        #         break
+        #     items.extend(response)
+        #     page += 1
+        #     response = None
+                # page = 1
         print(f"Getting all items 100 at a time")
+        page = 1
         while True:
             print(f'Getting page {page}')
-            response = self._api_get(f'/items/{collection}?page={page}')
-            # data = response.get('data', [])
+            response = self._api_get(f'/items/{collection}?limit=100&sort=id&offset={(page-1)*100}')
             if not response:
                 break
             items.extend(response)
             page += 1
+            response = None
         print(f'Got all {len(items)} items')
         return items
 
@@ -275,7 +289,6 @@ class DirectusDK:
         return self._send_request_handle_response(endpoint=endpoint, 
                                                   headers=self.auth_header, 
                                                   method='get')
-
 
     def _api_patch(self, endpoint, json):
         return self._send_request_handle_response(endpoint=endpoint,
